@@ -125,7 +125,7 @@
         "vNetResourceGroup": "[split(parameters('targetVnetResourceId'),'/')[4]]",
         "vnetName": "[split(parameters('targetVnetResourceId'),'/')[8]]",
         "vnetNodePoolSubnetResourceId": "[concat(parameters('targetVnetResourceId'), '/subnets/snet-clusternodes')]",
-        "clusterIdentityDeploymentName": "[concat('EnsureClusterIdentityHasRbacToSelfManagedResources-', variables('clusterName'))]",
+        "clusterIdentityDeploymentName": "[concat('EnsureClusterIdHasRbacToSelfManagedResources-', variables('clusterName'))]",
         "vnetIngressServicesSubnetResourceId": "[concat(parameters('targetVnetResourceId'), '/subnets/snet-cluster-ingressservices')]",
 
         "agwName": "[concat('apw-', variables('clusterName'))]",
