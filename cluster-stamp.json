@@ -474,7 +474,7 @@
                 ],
                 "autoscaleConfiguration": {
                     "minCapacity": 0,
-                    "maxCapacity": 10
+                    "maxCapacity": 5
                 },
                 "webApplicationFirewallConfiguration": {
                     "enabled": true,
@@ -809,8 +809,8 @@
                         "osDiskSizeGB": 80,
                         "osDiskType": "Ephemeral",
                         "osType": "Linux",
-                        "minCount": 3,
-                        "maxCount": 4,
+                        "minCount": 2,
+                        "maxCount": 3,
                         "vnetSubnetID": "[variables('vnetNodePoolSubnetResourceId')]",
                         "enableAutoScaling": true,
                         "type": "VirtualMachineScaleSets",
@@ -835,7 +835,7 @@
                         "osDiskType": "Ephemeral",
                         "osType": "Linux",
                         "minCount": 2,
-                        "maxCount": 5,
+                        "maxCount": 3,
                         "vnetSubnetID": "[variables('vnetNodePoolSubnetResourceId')]",
                         "enableAutoScaling": true,
                         "type": "VirtualMachineScaleSets",
