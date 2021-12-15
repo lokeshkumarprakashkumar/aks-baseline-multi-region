@@ -418,10 +418,8 @@
                     "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities',  'mi-appgateway-frontend')]": {}
                 }
             },
-            "zones": [
-                "1",
-                "2",
-                "3"
+            "zones": [               
+                "2"                
             ],
             "properties": {
                 "sku": {
