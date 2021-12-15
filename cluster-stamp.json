@@ -418,8 +418,10 @@
                     "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities',  'mi-appgateway-frontend')]": {}
                 }
             },
-            "zones": [               
-                "2"                
+            "zones": [    
+                "1",           
+                "2", 
+                "3"               
             ],
             "properties": {
                 "sku": {
@@ -819,7 +821,7 @@
                         "enableNodePublicIP": false,
                         "maxPods": 30,
                         "availabilityZones": [
-                            "1"                           
+                            "2"                           
                         ],
                         "upgradeSettings": {
                             "maxSurge": "33%"
