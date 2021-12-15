@@ -39,79 +39,79 @@ jobs:
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-    - name: ACR Images
-      id: acr-images
-      uses: Azure/cli@v1.0.0
-      with:
-        inlineScript: |
-          ACR_NAME_BU0001A0042=$(az deployment group show -g rg-bu0001a0042-shared -n shared-svcs-stamp --query properties.outputs.containerRegistryName.value -o tsv)
-          az acr import --source docker.io/library/memcached:1.5.20 -n $ACR_NAME_BU0001A0042 --force
-          az acr import --source docker.io/fluxcd/flux:1.21.1 -n $ACR_NAME_BU0001A0042 --force
-          az acr import --source docker.io/weaveworks/kured:1.6.1 -n $ACR_NAME_BU0001A0042 --force
-          az acr import --source docker.io/library/traefik:v2.5.3 -n $ACR_NAME_BU0001A0042 --force
+    # - name: ACR Images
+    #   id: acr-images
+    #   uses: Azure/cli@v1.0.0
+    #   with:
+    #     inlineScript: |
+    #       ACR_NAME_BU0001A0042=$(az deployment group show -g rg-bu0001a0042-shared -n shared-svcs-stamp --query properties.outputs.containerRegistryName.value -o tsv)
+    #       az acr import --source docker.io/library/memcached:1.5.20 -n $ACR_NAME_BU0001A0042 --force
+    #       az acr import --source docker.io/fluxcd/flux:1.21.1 -n $ACR_NAME_BU0001A0042 --force
+    #       az acr import --source docker.io/weaveworks/kured:1.6.1 -n $ACR_NAME_BU0001A0042 --force
+    #       az acr import --source docker.io/library/traefik:v2.5.3 -n $ACR_NAME_BU0001A0042 --force
 
-        azcliversion: 2.31.0
+    #     azcliversion: 2.31.0
 
-    # -----------------------REGION1------------------------------------------------
-    # Deploy the cluster into your environment, assuming all prerequisites are up and running.
-    - name: Azure CLI - Deploy AKS cluster - Region 1
-      id: aks-cluster-region1
-      if: success() && env.DEPLOY_REGION1 == 'true'
-      uses: Azure/cli@v1.0.0
-      with:
-        inlineScript: |
-         az group create --name rg-bu0001a0042-03 --location eastus2
-         az deployment group create --resource-group rg-bu0001a0042-03 \
-            --template-file "cluster-stamp.json" \
-             --parameters @azuredeploy.parameters.eastus2.json \
-              appGatewayListenerCertificate=${{ secrets.APP_GATEWAY_LISTENER_REGION1_CERTIFICATE_BASE64 }} \
-              aksIngressControllerCertificate=${{ secrets.AKS_INGRESS_CONTROLLER_CERTIFICATE_BASE64 }}
+    # # -----------------------REGION1------------------------------------------------
+    # # Deploy the cluster into your environment, assuming all prerequisites are up and running.
+    # - name: Azure CLI - Deploy AKS cluster - Region 1
+    #   id: aks-cluster-region1
+    #   if: success() && env.DEPLOY_REGION1 == 'true'
+    #   uses: Azure/cli@v1.0.0
+    #   with:
+    #     inlineScript: |
+    #      az group create --name rg-bu0001a0042-03 --location eastus2
+    #      az deployment group create --resource-group rg-bu0001a0042-03 \
+    #         --template-file "cluster-stamp.json" \
+    #          --parameters @azuredeploy.parameters.eastus2.json \
+    #           appGatewayListenerCertificate=${{ secrets.APP_GATEWAY_LISTENER_REGION1_CERTIFICATE_BASE64 }} \
+    #           aksIngressControllerCertificate=${{ secrets.AKS_INGRESS_CONTROLLER_CERTIFICATE_BASE64 }}
 
-          echo "::set-output name=name::$(az deployment group show --resource-group rg-bu0001a0042-03 -n cluster-stamp --query properties.outputs.aksClusterName.value -o tsv)"
-        azcliversion: 2.31.0
+    #       echo "::set-output name=name::$(az deployment group show --resource-group rg-bu0001a0042-03 -n cluster-stamp --query properties.outputs.aksClusterName.value -o tsv)"
+    #     azcliversion: 2.31.0
 
-    # Set the AKS cluster context - Region 1
-    - name: Set the AKS cluster context - Region 1
-      uses: Azure/aks-set-context@v1
-      if: success() && env.DEPLOY_REGION1 == 'true'
-      with:
-        creds: '${{ secrets.AZURE_CREDENTIALS }}'
-        cluster-name: ${{ steps.aks-cluster-region1.outputs.name }}
-        resource-group: rg-bu0001a0042-03
+    # # Set the AKS cluster context - Region 1
+    # - name: Set the AKS cluster context - Region 1
+    #   uses: Azure/aks-set-context@v1
+    #   if: success() && env.DEPLOY_REGION1 == 'true'
+    #   with:
+    #     creds: '${{ secrets.AZURE_CREDENTIALS }}'
+    #     cluster-name: ${{ steps.aks-cluster-region1.outputs.name }}
+    #     resource-group: rg-bu0001a0042-03
 
-    # Bake using Kubernetes Kustomize - Region 1
-    # NOTE: you could consider using fluxctl action instead. That could help on deploying Flux from a single step instead of baking and then deploying as demonstrated in here.
-    - name: Bake manifest - Region 1
-      id: aks-kustomize-region1
-      if: success() && env.DEPLOY_REGION1 == 'true'
-      uses: azure/k8s-bake@v1
-      with:
-        renderEngine: 'kustomize'
-        kustomizationPath: 'cluster-manifests/region1/bootstrapping'
-        kubectl-version: 'latest'
+    # # Bake using Kubernetes Kustomize - Region 1
+    # # NOTE: you could consider using fluxctl action instead. That could help on deploying Flux from a single step instead of baking and then deploying as demonstrated in here.
+    # - name: Bake manifest - Region 1
+    #   id: aks-kustomize-region1
+    #   if: success() && env.DEPLOY_REGION1 == 'true'
+    #   uses: azure/k8s-bake@v1
+    #   with:
+    #     renderEngine: 'kustomize'
+    #     kustomizationPath: 'cluster-manifests/region1/bootstrapping'
+    #     kubectl-version: 'latest'
 
-    # Create the cluster-baseline-settings namespace and deploy Flux into it - Region 1
-    - name: Create the cluster-baseline-settings namespace and deploy Flux - Region 1
-      id: aks-deploy-region1
-      if: success() && env.DEPLOY_REGION1 == 'true'
-      uses: Azure/k8s-deploy@v1
-      with:
-        namespace: 'cluster-baseline-settings'
-        manifests: |
-          cluster-manifests/base/cluster-baseline-settings/ns.yaml
-          ${{ steps.aks-kustomize-region1.outputs.manifestsBundle }}
+    # # Create the cluster-baseline-settings namespace and deploy Flux into it - Region 1
+    # - name: Create the cluster-baseline-settings namespace and deploy Flux - Region 1
+    #   id: aks-deploy-region1
+    #   if: success() && env.DEPLOY_REGION1 == 'true'
+    #   uses: Azure/k8s-deploy@v1
+    #   with:
+    #     namespace: 'cluster-baseline-settings'
+    #     manifests: |
+    #       cluster-manifests/base/cluster-baseline-settings/ns.yaml
+    #       ${{ steps.aks-kustomize-region1.outputs.manifestsBundle }}
 
-    - name: Azure CLI - Enroll Azure Application Gateway as backend in Azure Front Door - Region 1 
-      id: enrol-cluster-1
-      if: success() && env.DEPLOY_REGION1 == 'true'
-      uses: Azure/cli@v1.0.0
-      with:
-        inlineScript: |
-          az extension add --upgrade -n front-door
-          APPGW_FQDN_BU0001A0042_03=$(az deployment group show -g rg-enterprise-networking-spokes -n spoke-BU0001A0042-03 --query properties.outputs.appGwFqdn.value -o tsv)
-          FRONT_DOOR_NAME=$(az deployment group show -g rg-bu0001a0042-shared -n shared-svcs-stamp --query properties.outputs.frontDoorName.value -o tsv)
-          FRONT_DOOR_BACKENDPOOL_NAME=$(az deployment group show -g rg-bu0001a0042-shared -n shared-svcs-stamp --query properties.outputs.frontDoorBackendPoolName.value -o tsv)
-          az network front-door backend-pool backend add --address $APPGW_FQDN_BU0001A0042_03 --front-door-name $FRONT_DOOR_NAME --pool-name $FRONT_DOOR_BACKENDPOOL_NAME -g rg-bu0001a0042-shared --backend-host-header $APPGW_FQDN_BU0001A0042_03 --disabled false --http-port 80 --https-port 443  --priority 1 --weight 50
+    # - name: Azure CLI - Enroll Azure Application Gateway as backend in Azure Front Door - Region 1 
+    #   id: enrol-cluster-1
+    #   if: success() && env.DEPLOY_REGION1 == 'true'
+    #   uses: Azure/cli@v1.0.0
+    #   with:
+    #     inlineScript: |
+    #       az extension add --upgrade -n front-door
+    #       APPGW_FQDN_BU0001A0042_03=$(az deployment group show -g rg-enterprise-networking-spokes -n spoke-BU0001A0042-03 --query properties.outputs.appGwFqdn.value -o tsv)
+    #       FRONT_DOOR_NAME=$(az deployment group show -g rg-bu0001a0042-shared -n shared-svcs-stamp --query properties.outputs.frontDoorName.value -o tsv)
+    #       FRONT_DOOR_BACKENDPOOL_NAME=$(az deployment group show -g rg-bu0001a0042-shared -n shared-svcs-stamp --query properties.outputs.frontDoorBackendPoolName.value -o tsv)
+    #       az network front-door backend-pool backend add --address $APPGW_FQDN_BU0001A0042_03 --front-door-name $FRONT_DOOR_NAME --pool-name $FRONT_DOOR_BACKENDPOOL_NAME -g rg-bu0001a0042-shared --backend-host-header $APPGW_FQDN_BU0001A0042_03 --disabled false --http-port 80 --https-port 443  --priority 1 --weight 50
 
     # -----------------------REGION2------------------------------------------------
     # Deploy the cluster into your environment, assuming all prerequisites are up and running.
